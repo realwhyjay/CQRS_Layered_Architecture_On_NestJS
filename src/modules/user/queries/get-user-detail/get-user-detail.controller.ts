@@ -1,56 +1,60 @@
-import { Controller, Get, HttpStatus, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpStatus,
+  InternalServerErrorException,
+  Query,
+} from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Result } from 'oxide.ts';
+import { Result, match } from 'oxide.ts';
 import { ApiTagsSet, routesV1 } from '@config/app.routes';
-import { ResponseBase } from '@common/api/response.base';
-import { UserEntity } from '@src/common/database/entities';
-import { Paginated } from '@src/common/database/repository';
-import { UserPaginatedResponseDto } from '@modules/user/dtos/user.paginated.response.dto';
-import { FindUsersRequestDto } from './get-user-detail.request.dto';
-import { FindUsersQuery } from './get-user-detail.query-handler';
+
+import { GetUserDetailRequestDto } from './dtos/get-user-detail.request.dto';
+import { GetUserDetailQuery } from './get-user-detail.query-handler';
+import { GetUserDetailResponseDto } from './dtos/get-user-detail.response.dto';
+import { ResponseBase } from '@src/common/api/response/response';
+import { ResponseMessage } from '@src/common/constants/responseMessage';
+
+import { GetUserDetailFailException } from './errors/get-user-detail.error';
 
 @Controller(routesV1.version)
 @ApiTags(ApiTagsSet.user)
-export class FindUsersHttpController {
+export class GetUserDetailController {
   constructor(private readonly queryBus: QueryBus) {}
 
-  @Get(routesV1.user.root)
-  @ApiOperation({ summary: 'Find users' })
+  @Get(routesV1.user.get.detail)
+  @ApiOperation({
+    summary: 'Get User Detail',
+    description: `user의 Id를 받아 user를 조회한다`,
+  })
   @ApiResponse({
     status: HttpStatus.OK,
-    type: UserPaginatedResponseDto,
+    type: GetUserDetailResponseDto,
   })
-  async findUsers(
-    @Query() queryParams: FindUsersRequestDto,
-  ): Promise<UserPaginatedResponseDto> {
-    const data = {
-      email: queryParams?.email,
-      name: queryParams?.email,
-      gender: queryParams?.gender,
-    };
-
-    const query = new FindUsersQuery({
-      ...data,
-      limit: queryParams?.limit,
-      page: queryParams?.page,
+  async getUserDetail(
+    @Query() queryParams: GetUserDetailRequestDto,
+  ): Promise<ResponseBase<GetUserDetailResponseDto>> {
+    const query = new GetUserDetailQuery({
+      ...queryParams,
     });
 
-    const result: Result<
-      Paginated<UserEntity>,
-      Error
-    > = await this.queryBus.execute(query);
+    const result: Result<GetUserDetailResponseDto, Error> =
+      await this.queryBus.execute(query);
 
-    const paginated = result.unwrap();
-
-    // Whitelisting returned properties
-    return new UserPaginatedResponseDto({
-      ...paginated,
-      data: paginated.data.map((user) => ({
-        ...new ResponseBase(user),
-        email: user.email,
-        name: user.firstName,
-      })),
+    return match(result, {
+      Ok: (user: GetUserDetailResponseDto) =>
+        ResponseBase.OK_WITH_DATA(
+          ResponseMessage.USER.GET.DETAIL.SUCCESS,
+          user,
+        ),
+      Err: (error: Error) => {
+        if (error instanceof GetUserDetailFailException) {
+          throw new InternalServerErrorException(error.message);
+        } else {
+          throw error;
+        }
+      },
     });
   }
 }

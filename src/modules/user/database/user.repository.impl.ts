@@ -5,7 +5,7 @@ import { Ok, Err, Result } from 'oxide.ts';
 import { TypeOrmRepositoryBase } from '@src/common/database/type-orm-repository.base';
 import { UserEntity } from '@src/common/database/entities';
 import { UserRepository } from './user.repository';
-import { UserIsNotExistException } from '../commands/create-user/errors/create-user.error';
+import { UserIsNotExistException } from '../errors/user-error';
 
 @Injectable()
 export class UserRepositoryImpl

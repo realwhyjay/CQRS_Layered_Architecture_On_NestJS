@@ -7,6 +7,7 @@ import { IdResponse } from '@common/api/id.response.dto';
 import { CreateUserCommand } from './create-user.command';
 import { USER_REPOSITORY } from '@modules/user/user.di-tokens';
 import { UserSaveFailException } from './errors/create-user.error';
+import { isInstanceOfCustomExceptions } from '@src/common/exceptions';
 
 @CommandHandler(CreateUserCommand)
 export class CreateUserService implements ICommandHandler {
@@ -16,6 +17,8 @@ export class CreateUserService implements ICommandHandler {
     @Inject(Logger)
     private readonly logger = new Logger(CreateUserService.name),
   ) {}
+
+  readonly Exceptions = [UserSaveFailException];
 
   private ValidateUserEntity({
     firstName,
@@ -40,15 +43,22 @@ export class CreateUserService implements ICommandHandler {
 
   async execute(
     command: CreateUserCommand,
-  ): Promise<Result<IdResponse, UserSaveFailException>> {
+  ): Promise<
+    Result<IdResponse, InstanceType<(typeof this.Exceptions)[number]>>
+  > {
     const userEntity = this.ValidateUserEntity(command);
 
     try {
       const id = await this.userRepo.insert(userEntity);
 
       return Ok(new IdResponse(id));
-    } catch (err: any) {
-      this.logger.error(`User save fail ${err.message}`, err.stack);
+    } catch (error: any) {
+      this.logger.error(`User save fail ${error.message}`, error.stack);
+
+      if (isInstanceOfCustomExceptions(error, this.Exceptions)) {
+        return Err(error);
+      }
+
       return Err(new UserSaveFailException());
     }
   }

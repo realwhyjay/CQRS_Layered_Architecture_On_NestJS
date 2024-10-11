@@ -80,3 +80,10 @@ export class InternalServerErrorException extends ExceptionBase {
 
   readonly code = INTERNAL_SERVER_ERROR;
 }
+
+export function isInstanceOfCustomExceptions(
+  error: any,
+  exceptionTypes: any[],
+): boolean {
+  return exceptionTypes.some((exceptionType) => error instanceof exceptionType);
+}

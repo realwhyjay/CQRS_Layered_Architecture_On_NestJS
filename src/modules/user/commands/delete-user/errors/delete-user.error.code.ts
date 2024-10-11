@@ -1,2 +1,1 @@
-export const USER_IS_NOT_EXIST = 'USER_IS_NOT_EXIST';
 export const USER_DELETE_FAIL = 'USER_DELETE_FAIL';
