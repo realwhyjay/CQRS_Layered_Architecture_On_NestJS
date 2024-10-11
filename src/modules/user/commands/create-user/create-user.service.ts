@@ -6,7 +6,7 @@ import { UserEntity } from '@src/common/database/entities';
 import { IdResponse } from '@common/api/id.response.dto';
 import { CreateUserCommand } from './create-user.command';
 import { USER_REPOSITORY } from '@modules/user/user.di-tokens';
-import { UserSaveFailException } from './errors/create-user.error';
+import { CreateUserFailException } from './errors/create-user.error';
 import { isInstanceOfCustomExceptions } from '@src/common/exceptions';
 
 @CommandHandler(CreateUserCommand)
@@ -18,7 +18,7 @@ export class CreateUserService implements ICommandHandler {
     private readonly logger = new Logger(CreateUserService.name),
   ) {}
 
-  readonly Exceptions = [UserSaveFailException];
+  readonly Exceptions = [CreateUserFailException];
 
   private ValidateUserEntity({
     firstName,
@@ -59,7 +59,7 @@ export class CreateUserService implements ICommandHandler {
         return Err(error);
       }
 
-      return Err(new UserSaveFailException());
+      return Err(new CreateUserFailException());
     }
   }
 }

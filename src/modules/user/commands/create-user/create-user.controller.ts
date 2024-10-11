@@ -12,7 +12,9 @@ import { match, Result } from 'oxide.ts';
 import { IdResponse } from '@common/api/id.response.dto';
 import { CreateUserCommand } from './create-user.command';
 import { CreateUserRequestDto } from './dtos/create-user.request.dto';
-import { UserSaveFailException } from './errors/create-user.error';
+import { CreateUserFailException } from './errors/create-user.error';
+import { ResponseBase } from '@src/common/api/response/response';
+import { ResponseMessage } from '@src/common/constants/responseMessage';
 
 @Controller(routesV1.version)
 @ApiTags(ApiTagsSet.user)
@@ -20,23 +22,17 @@ export class CreateUserController {
   constructor(private readonly commandBus: CommandBus) {}
 
   @ApiOperation({ summary: 'Create a user' })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    type: IdResponse,
-  })
-  @Post(routesV1.user.root)
-  async create(
-    @Body() body: CreateUserRequestDto,
-  ): Promise<IdResponse | Error> {
+  @Post(routesV1.user.create)
+  async create(@Body() body: CreateUserRequestDto) {
     const command = new CreateUserCommand(body);
-    console.log(command);
-    const result: Result<IdResponse, UserSaveFailException> =
+    const result: Result<IdResponse, CreateUserFailException> =
       await this.commandBus.execute(command);
 
     return match(result, {
-      Ok: (id: IdResponse) => id,
+      Ok: (id: IdResponse) =>
+        ResponseBase.OK_WITH_DATA(ResponseMessage.SUCCESS.USER.CREATE, id),
       Err: (error: Error) => {
-        if (error instanceof UserSaveFailException) {
+        if (error instanceof CreateUserFailException) {
           throw new InternalServerErrorException(error.message);
         } else {
           throw error;

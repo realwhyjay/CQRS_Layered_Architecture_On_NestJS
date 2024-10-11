@@ -28,5 +28,6 @@ export interface RepositoryPort<Entity> {
   findAll(): Promise<Entity[]>;
   findAllPaginated(params: PaginatedQueryParams): Promise<Paginated<any>>;
   deleteById(id: number): Promise<boolean>;
+  softDeleteById(id: number): Promise<boolean>;
   insert(entity: Entitys): Promise<number>;
 }

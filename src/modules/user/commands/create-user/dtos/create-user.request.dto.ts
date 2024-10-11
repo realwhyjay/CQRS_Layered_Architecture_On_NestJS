@@ -1,5 +1,4 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Gender } from '@src/common/database/entities';
 import { IsEmail, IsString, MaxLength, MinLength } from 'class-validator';
 
 export class CreateUserRequestDto {
@@ -29,13 +28,4 @@ export class CreateUserRequestDto {
   @MinLength(5)
   @IsEmail()
   readonly email: string;
-
-  @ApiProperty({
-    example: 'M',
-    description: 'user gender',
-  })
-  @MaxLength(320)
-  @MinLength(1)
-  @IsString()
-  readonly gender: Gender;
 }

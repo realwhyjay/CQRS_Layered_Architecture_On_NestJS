@@ -2,6 +2,7 @@ import {
   BadRequestException,
   CallHandler,
   ExecutionContext,
+  InternalServerErrorException,
   Logger,
   NestInterceptor,
 } from '@nestjs/common';
@@ -19,41 +20,57 @@ export class ExceptionInterceptor implements NestInterceptor {
     next: CallHandler,
   ): Observable<ExceptionBase> {
     return next.handle().pipe(
-      catchError((err) => {
+      catchError((error) => {
         // Logging for debugging purposes
-        if (err.status >= 400 && err.status < 500) {
+        if (error.status >= 400 && error.status < 500) {
           this.logger.debug(
-            `[${RequestContextService.getRequestId()}] ${err.message}`,
+            `[${RequestContextService.getRequestId()}] ${error.message}`,
           );
 
           const isClassValidatorError =
-            Array.isArray(err?.response?.message) &&
-            typeof err?.response?.error === 'string' &&
-            err.status === 400;
+            Array.isArray(error?.response?.message) &&
+            typeof error?.response?.error === 'string' &&
+            error.status === 400;
+
           // Transforming class-validator errors to a different format
           if (isClassValidatorError) {
-            err = new BadRequestException(
+            error = new BadRequestException(
               new ApiErrorResponse({
-                statusCode: err.status,
-                message: 'Validation error',
-                error: err?.response?.error,
-                subErrors: err?.response?.message,
+                statusCode: error.status,
+                message: 'VALIDATION_ERROR',
+                error: error?.response?.error,
+                descriptions: error?.response?.message,
+                correlationId: RequestContextService.getRequestId(),
+              }),
+            );
+          } else {
+            error = new BadRequestException(
+              new ApiErrorResponse({
+                statusCode: error.status,
+                message: error?.code,
+                error: error?.response?.error,
+                descriptions: error?.response?.message,
                 correlationId: RequestContextService.getRequestId(),
               }),
             );
           }
+        } else if (error.status == 500) {
+          this.logger.debug(
+            `[${RequestContextService.getRequestId()} - 500] ${error.message}`,
+          );
+          error = new InternalServerErrorException();
         }
 
         // Adding request ID to error message
-        if (!err.correlationId) {
-          err.correlationId = RequestContextService.getRequestId();
+        if (!error.correlationId) {
+          error.correlationId = RequestContextService.getRequestId();
         }
 
-        if (err.response) {
-          err.response.correlationId = err.correlationId;
+        if (error.response) {
+          error.response.correlationId = error.correlationId;
         }
 
-        return throwError(err);
+        return throwError(() => error);
       }),
     );
   }

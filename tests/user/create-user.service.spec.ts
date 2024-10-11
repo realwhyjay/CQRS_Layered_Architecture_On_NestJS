@@ -5,7 +5,7 @@ import { Logger } from '@nestjs/common';
 import { USER_REPOSITORY } from '@src/modules/user/user.di-tokens';
 import { RequestContext } from 'nestjs-request-context';
 import { Err, Result, match } from 'oxide.ts';
-import { UserSaveFailException } from '@src/modules/user/commands/create-user/errors/create-user.error';
+import { CreateUserFailException } from '@src/modules/user/commands/create-user/errors/create-user.error';
 import { IdResponse } from '@src/common/api/id.response.dto';
 
 const mockUserRepository = {
@@ -42,16 +42,16 @@ describe('Unit - CreateUserService', () => {
   describe('execute', () => {
     it('Get to created user id when is create user success', async () => {
       const commands = new CreateUserCommand({
-        name: 'Test user',
+        firstName: 'Test',
+        lastName: 'User',
         phone: '01012345678',
         email: 'test1@gmail.com',
-        gender: 'M',
       });
 
       // 몇번 호출했는지 알고싶을 때는 spy 사용
       mockUserRepository.insert.mockReturnValue(3);
 
-      const result: Result<IdResponse, UserSaveFailException> =
+      const result: Result<IdResponse, CreateUserFailException> =
         await service.execute(commands);
 
       match(result, {
@@ -61,24 +61,25 @@ describe('Unit - CreateUserService', () => {
 
     it('Throw `UserSaveFail` exception when is create user failure', async () => {
       const commands = new CreateUserCommand({
-        name: 'exception user user',
+        firstName: 'Test',
+        lastName: 'User',
         phone: '000-000-000',
         email: 'this is not email',
-        gender: 'M',
       });
 
       mockUserRepository.insert.mockReturnValue(
-        Err(new UserSaveFailException()),
+        Err(new CreateUserFailException()),
       );
 
-      const result: Result<IdResponse, UserSaveFailException> =
+      const result: Result<IdResponse, CreateUserFailException> =
         await service.execute(commands);
 
       match(result, {
         Ok: () => {
           // empty because throw exception when is not implement
         },
-        Err: (err: Error) => expect(err).toBeInstanceOf(UserSaveFailException),
+        Err: (err: Error) =>
+          expect(err).toBeInstanceOf(CreateUserFailException),
       });
     });
   });

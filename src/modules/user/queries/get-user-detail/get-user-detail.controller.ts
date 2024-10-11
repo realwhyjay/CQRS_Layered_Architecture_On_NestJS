@@ -45,7 +45,7 @@ export class GetUserDetailController {
     return match(result, {
       Ok: (user: GetUserDetailResponseDto) =>
         ResponseBase.OK_WITH_DATA(
-          ResponseMessage.USER.GET.DETAIL.SUCCESS,
+          ResponseMessage.SUCCESS.USER.GET.DETAIL,
           user,
         ),
       Err: (error: Error) => {

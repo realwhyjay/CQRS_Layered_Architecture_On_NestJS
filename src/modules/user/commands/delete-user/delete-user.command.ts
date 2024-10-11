@@ -1,10 +1,9 @@
-import { Command, CommandProps } from '@common/cqrs';
+import { CommandProps } from '@common/cqrs';
 
-export class DeleteUserCommand extends Command {
+export class DeleteUserCommand {
   readonly userId: number;
 
   constructor(props: CommandProps<DeleteUserCommand>) {
-    super(props);
     this.userId = props.userId;
   }
 }

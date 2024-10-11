@@ -1,11 +1,12 @@
 import { ExceptionBase } from '@src/common/exceptions';
-import { USER_SAVE_FAIL } from './create-user.error.code';
+import { CREATE_USER_FAIL } from './create-user.error.code';
+import { ResponseMessage } from '@src/common/constants/responseMessage';
 
-export class UserSaveFailException extends ExceptionBase {
-  readonly code = USER_SAVE_FAIL;
-  static readonly message = 'user save fail in database';
+export class CreateUserFailException extends ExceptionBase {
+  readonly code = CREATE_USER_FAIL;
+  static readonly message = ResponseMessage.ERROR.USER.CREATE;
 
-  constructor(message = UserSaveFailException.message) {
-    super(UserSaveFailException.name, undefined, message, 500);
+  constructor(message = CreateUserFailException.message) {
+    super(CreateUserFailException.name, undefined, message, 500);
   }
 }

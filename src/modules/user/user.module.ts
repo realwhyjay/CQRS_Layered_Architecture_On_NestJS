@@ -9,6 +9,7 @@ import { USER_REPOSITORY } from './user.di-tokens';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { entityList } from '@src/common/database/entities';
 import { DeleteUserController } from './commands/delete-user/delete-user.controller';
+import { DeleteUserService } from './commands/delete-user/delete-user.service';
 
 const controllers = [
   CreateUserController,
@@ -16,7 +17,7 @@ const controllers = [
   DeleteUserController,
 ];
 
-const commandHandlers: Provider[] = [CreateUserService];
+const commandHandlers: Provider[] = [CreateUserService, DeleteUserService];
 
 const queryHandlers: Provider[] = [GetUserDetailQueryHandler];
 

@@ -53,6 +53,11 @@ export abstract class TypeOrmRepositoryBase<Entity>
     return result.affected === 0;
   }
 
+  async softDeleteById(id: number): Promise<boolean> {
+    const result = await this.repository.softRemove({ id });
+    return result.affected !== 0;
+  }
+
   async insert(entity: Entitys): Promise<number> {
     const result = await this.repository.insert(entity);
 
