@@ -1,12 +1,11 @@
 import {
   Body,
   Controller,
-  HttpStatus,
   InternalServerErrorException,
   Post,
 } from '@nestjs/common';
 import { ApiTagsSet, routesV1 } from '@config/app.routes';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CommandBus } from '@nestjs/cqrs';
 import { match, Result } from 'oxide.ts';
 import { IdResponse } from '@common/api/id.response.dto';
